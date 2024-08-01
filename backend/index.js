@@ -18,6 +18,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 const corsOptions = {
     origin:'https://job-portal-frontend-0lnj.onrender.com',
+    methods: 'GET,POST,PUT,DELETE',
     credentials:true
 }
 

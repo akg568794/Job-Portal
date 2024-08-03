@@ -23,7 +23,7 @@ export const register = async (req, res) => {
             return res.status(400).json({
                 message: 'User already exist with this email.',
                 success: false,
-            })
+            });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -34,7 +34,7 @@ export const register = async (req, res) => {
             password: hashedPassword,
             role,
             profile:{
-                profilePhoto:cloudResponse.secure_url,
+                profilePhoto: cloudResponse.secure_url,
             }
         });
 
@@ -45,7 +45,8 @@ export const register = async (req, res) => {
     } catch (error) {
         console.log(error);
     }
-}
+};
+
 export const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
@@ -61,21 +62,21 @@ export const login = async (req, res) => {
             return res.status(400).json({
                 message: "Incorrect email or password.",
                 success: false,
-            })
+            });
         }
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
                 message: "Incorrect email or password.",
                 success: false,
-            })
+            });
         };
         // Check if the role is correct
         if (role !== user.role) {
             return res.status(400).json({
                 message: "Account doesn't exist with current role.",
                 success: false
-            })
+            });
         };
 
         const tokenData = {
@@ -92,7 +93,13 @@ export const login = async (req, res) => {
             profile: user.profile
         };
 
-        return res.status(200).json({
+        const tokenOption = {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        };
+
+        res.cookie("token", token, tokenOption).status(200).json({
             message: `Welcome back ${user.fullname}`,
             user,
             token, // Include token in the response
@@ -105,18 +112,23 @@ export const login = async (req, res) => {
             success: false
         });
     }
-}
+};
 
 export const logout = async (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+        res.cookie("token", "", { maxAge: 0, httpOnly: true, secure: true, sameSite: 'None' }).status(200).json({
             message: "Logged out successfully.",
             success: true
-        })
+        });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "An error occurred.",
+            success: false
+        });
     }
-}
+};
+
 export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
